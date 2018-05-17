@@ -1,0 +1,50 @@
+version: "3.2"
+services:
+	primarydnsresolver:
+		network_mode: "host"
+		image: "anyqast/uniqast-pdns-recursor:latest"
+		hostname: "pdns-recursor"
+		read_only: true
+		tmpfs:
+			- "/tmp"
+			- "/run"
+		environment:
+			LOCAL_ADDRESS: "127.0.0.1,123.45.67.89,2000::1"
+			HEALTHCHECK_IP_RANGE_START: "127.0.0.2"
+			HEALTHCHECK_IP_RANGE_END: "127.255.255.254"
+			TELEGRAF_AGENT_COLLECT_INTERVAL: "1s"
+			TELEGRAF_AGENT_FLUSH_INTERVAL: "1s"
+			TELEGRAF_OUTPUTS: |
+				[[outputs.influxdb]]
+				urls = ["http://influxdb:8086"]
+				database = "anyqast"
+				retention_policy = ""
+				write_consistency = "any"
+				timeout = "15s"
+				username = "anyqast"
+				password = "xxxxxxxxxxxxxxxx"
+				user_agent = "telegraf"
+				udp_payload = 512
+	netmgmt:
+		network_mode: "host"
+		image: "anyqast/multiqast-netmanage"
+		hostname: "netmanage"
+		privileged: true
+		read_only: true
+		tmpfs:
+			- "/tmp"
+			- "/run"
+			- "/etc/bird.d"
+		volumes:
+			- type: "bind"
+			  source: "/var/run/docker.sock"
+			  target: "/var/run/docker.sock"
+			  read_only: true
+			- type: "bind"
+			  source: "/lib/modules"
+			  target: "/lib/modules"
+			  read_only: true
+		environment:
+			BGP_AS: 204136
+			BGP_PREFIXES: "123.45.67.0/24 2000::/48"
+			BGP_NEIGHBORS: "external,1.2.3.4,12345 external,2abc::def,12345,password"
