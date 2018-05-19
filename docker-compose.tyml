@@ -48,3 +48,20 @@ services:
 			BGP_AS: 204136
 			BGP_PREFIXES: "123.45.67.0/24 2000::/48"
 			BGP_NEIGHBORS: "external,1.2.3.4,12345 external,2abc::def,12345,password"
+	dnscrypt:
+		network_mode: "host"
+		image: "anyqast/uniqast-dnscrypt-wrapper"
+		hostname: "dnscrypt"
+		read_only: true
+		tmpfs:
+			- "/tmp"
+			- "/run"
+		environment:
+			DNSCRYPT_HOST_PORTS: |
+				123.45.67.89 27015
+				123.45.67.123 8080
+			DNSCRYPT_CERT_FILE_EXPIRE_DAYS: "1h"
+			DNSCRYPT_CERT_FILE_ROTATION_INTERVAL: "3300"
+			DNSCRYPT_CERT_FILE_ROTATION_TIMEOUT: "300"
+			DNSCRYPT_CERT_FILE_HISTORY_SIZE: "24"
+			DNSCRYPT_PROVIDER_NAME: "dnscrypt.info"
